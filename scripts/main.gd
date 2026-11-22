@@ -86,36 +86,86 @@ func _make_world() -> void:
     sun.light_energy = 1.2
     add_child(sun)
 
-    var ground := StaticBody3D.new()
-    ground.name = "Ground"
-    var ground_mesh := MeshInstance3D.new()
-    var plane := PlaneMesh.new()
-    plane.size = Vector2(80, 80)
-    ground_mesh.mesh = plane
-    var ground_material := StandardMaterial3D.new()
-    ground_material.albedo_color = Color(0.18, 0.38, 0.22)
-    ground_mesh.material_override = ground_material
-    ground.add_child(ground_mesh)
+    var ocean := MeshInstance3D.new()
+    var ocean_mesh := PlaneMesh.new()
+    ocean_mesh.size = Vector2(150, 150)
+    ocean.mesh = ocean_mesh
+    ocean.position.y = -1.15
+    var ocean_material := StandardMaterial3D.new()
+    ocean_material.albedo_color = Color(0.025, 0.20, 0.34)
+    ocean_material.roughness = 0.28
+    ocean.material_override = ocean_material
+    add_child(ocean)
 
-    var ground_collision := CollisionShape3D.new()
-    var ground_shape := BoxShape3D.new()
-    ground_shape.size = Vector3(80, 0.2, 80)
-    ground_collision.shape = ground_shape
-    ground_collision.position.y = -0.1
-    ground.add_child(ground_collision)
-    add_child(ground)
+    var island := StaticBody3D.new()
+    island.name = "Island"
+    var island_mesh := MeshInstance3D.new()
+    var island_shape_mesh := CylinderMesh.new()
+    island_shape_mesh.top_radius = 32.0
+    island_shape_mesh.bottom_radius = 34.0
+    island_shape_mesh.height = 1.0
+    island_mesh.mesh = island_shape_mesh
+    var island_material := StandardMaterial3D.new()
+    island_material.albedo_color = Color(0.20, 0.42, 0.22)
+    island_mesh.material_override = island_material
+    island.add_child(island_mesh)
+
+    var island_collision := CollisionShape3D.new()
+    var island_shape := CylinderShape3D.new()
+    island_shape.radius = 33.0
+    island_shape.height = 1.0
+    island_collision.shape = island_shape
+    island.add_child(island_collision)
+    island.position.y = -0.5
+    add_child(island)
+
+    var tree_positions := [
+        Vector3(-18, 0, -12), Vector3(-12, 0, 16), Vector3(-4, 0, -22),
+        Vector3(10, 0, -17), Vector3(19, 0, -6), Vector3(15, 0, 16),
+        Vector3(-20, 0, 8), Vector3(4, 0, 21), Vector3(23, 0, 10)
+    ]
+    for tree_position in tree_positions:
+        _add_tree(tree_position)
 
     for i in range(12):
-        var marker := MeshInstance3D.new()
-        var rock := SphereMesh.new()
-        rock.radius = 0.8
-        rock.height = 1.3
-        marker.mesh = rock
-        var material := StandardMaterial3D.new()
-        material.albedo_color = Color(0.32, 0.34, 0.3)
-        marker.material_override = material
-        marker.position = Vector3(float((i % 4) * 8 - 12), 0.6, float(int(i / 4) * 10 - 10))
-        add_child(marker)
+        var rock_node := MeshInstance3D.new()
+        var rock_mesh := SphereMesh.new()
+        rock_mesh.radius = 0.8
+        rock_mesh.height = 1.3
+        rock_node.mesh = rock_mesh
+        var rock_material := StandardMaterial3D.new()
+        rock_material.albedo_color = Color(0.32, 0.34, 0.3)
+        rock_node.material_override = rock_material
+        rock_node.position = Vector3(float((i % 4) * 8 - 12), 0.6, float(int(i / 4) * 10 - 10))
+        add_child(rock_node)
+
+func _add_tree(tree_position: Vector3) -> void:
+    var tree_root := Node3D.new()
+    tree_root.position = tree_position
+    add_child(tree_root)
+
+    var trunk := MeshInstance3D.new()
+    var trunk_mesh := CylinderMesh.new()
+    trunk_mesh.top_radius = 0.22
+    trunk_mesh.bottom_radius = 0.35
+    trunk_mesh.height = 2.4
+    trunk.mesh = trunk_mesh
+    trunk.position.y = 1.2
+    var trunk_material := StandardMaterial3D.new()
+    trunk_material.albedo_color = Color(0.28, 0.16, 0.08)
+    trunk.material_override = trunk_material
+    tree_root.add_child(trunk)
+
+    var leaves := MeshInstance3D.new()
+    var leaves_mesh := SphereMesh.new()
+    leaves_mesh.radius = 1.25
+    leaves_mesh.height = 2.2
+    leaves.mesh = leaves_mesh
+    leaves.position.y = 2.8
+    var leaves_material := StandardMaterial3D.new()
+    leaves_material.albedo_color = Color(0.08, 0.30, 0.12)
+    leaves.material_override = leaves_material
+    tree_root.add_child(leaves)
 
 func _make_player() -> void:
     player = CharacterBody3D.new()
