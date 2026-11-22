@@ -3,11 +3,13 @@ extends Node3D
 const MOVE_SPEED := 6.0
 const JUMP_SPEED := 5.0
 const GRAVITY := 14.0
+const LOOK_SENSITIVITY := 0.005
 
 var player: CharacterBody3D
 var move_direction := Vector2.ZERO
 var jump_requested := false
 var camera_pivot: Node3D
+var mouse_look_active := false
 
 func _ready() -> void:
     _make_world()
@@ -18,6 +20,26 @@ func _process(_delta: float) -> void:
     if camera_pivot != null and player != null:
         camera_pivot.global_position = player.global_position + Vector3(0, 1.3, 0)
 
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventScreenDrag:
+        var screen_size := get_viewport().get_visible_rect().size
+        if event.position.x > screen_size.x * 0.42 and event.position.y < screen_size.y * 0.78:
+            _rotate_camera(event.relative)
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+        mouse_look_active = event.pressed
+    elif event is InputEventMouseMotion and mouse_look_active:
+        _rotate_camera(event.relative)
+
+func _rotate_camera(relative_motion: Vector2) -> void:
+    if camera_pivot == null:
+        return
+    camera_pivot.rotation.y -= relative_motion.x * LOOK_SENSITIVITY
+    camera_pivot.rotation.x = clampf(
+        camera_pivot.rotation.x - relative_motion.y * LOOK_SENSITIVITY,
+        deg_to_rad(-15.0),
+        deg_to_rad(35.0)
+    )
+
 func _physics_process(delta: float) -> void:
     if player == null:
         return
@@ -26,9 +48,19 @@ func _physics_process(delta: float) -> void:
     if input_vector.length() < 0.01:
         input_vector = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
-    var direction := Vector3(input_vector.x, 0, input_vector.y).normalized()
+    var forward := -camera_pivot.global_transform.basis.z
+    var right := camera_pivot.global_transform.basis.x
+    forward.y = 0.0
+    right.y = 0.0
+    forward = forward.normalized()
+    right = right.normalized()
+    var direction := (right * input_vector.x + forward * -input_vector.y).normalized()
+
     player.velocity.x = direction.x * MOVE_SPEED
     player.velocity.z = direction.z * MOVE_SPEED
+
+    if direction.length() > 0.05:
+        player.rotation.y = atan2(-direction.x, -direction.z)
 
     if not player.is_on_floor():
         player.velocity.y -= GRAVITY * delta
@@ -110,11 +142,12 @@ func _make_player() -> void:
 
     camera_pivot = Node3D.new()
     camera_pivot.position = player.position + Vector3(0, 1.3, 0)
+    camera_pivot.rotation.x = deg_to_rad(12.0)
     add_child(camera_pivot)
 
     var camera := Camera3D.new()
-    camera.position = Vector3(0, 3.2, 7.5)
-    camera.look_at(Vector3.ZERO, Vector3.UP)
+    camera.position = Vector3(0, 2.8, 7.5)
+    camera.look_at(Vector3(0, 0.8, 0), Vector3.UP)
     camera_pivot.add_child(camera)
     camera.current = true
 
@@ -161,6 +194,16 @@ func _make_mobile_controls() -> void:
     jump_button.anchor_bottom = 0.94
     jump_button.pressed.connect(func(): jump_requested = true)
     layer.add_child(jump_button)
+
+    var hint := Label.new()
+    hint.text = "DRAG RIGHT SIDE TO LOOK AROUND"
+    hint.anchor_left = 0.42
+    hint.anchor_top = 0.04
+    hint.anchor_right = 0.98
+    hint.anchor_bottom = 0.12
+    hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    hint.add_theme_color_override("font_color", Color.WHITE)
+    layer.add_child(hint)
 
 func _add_hold_button(parent: Control, label_text: String, direction: Vector2) -> void:
     var button := Button.new()
