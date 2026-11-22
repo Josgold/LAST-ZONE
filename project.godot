@@ -1,0 +1,12 @@
+; Engine configuration file.
+; LAST ZONE - early 3D Android prototype
+config_version=5
+
+[application]
+config/name="LAST ZONE"
+run/main_scene="res://scenes/main.tscn"
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/default_filters/use_nearest_mipmap_filter=false
