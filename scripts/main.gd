@@ -156,8 +156,9 @@ func _make_world() -> void:
         Vector3(10, 0, -17), Vector3(19, 0, -6), Vector3(15, 0, 16),
         Vector3(-20, 0, 8), Vector3(4, 0, 21), Vector3(23, 0, 10)
     ]
-    for tree_position in tree_positions:
-        _add_tree(tree_position)
+    for i in range(tree_positions.size()):
+        var tree_scale := 0.82 + float(i % 4) * 0.12
+        _add_tree(tree_positions[i], tree_scale)
 
     for i in range(12):
         var rock_node := MeshInstance3D.new()
@@ -384,9 +385,10 @@ func _add_detail_box(parent: Node3D, local_position: Vector3, box_size: Vector3,
     detail.material_override = material
     parent.add_child(detail)
 
-func _add_tree(tree_position: Vector3) -> void:
+func _add_tree(tree_position: Vector3, tree_scale: float = 1.0) -> void:
     var tree_root := Node3D.new()
     tree_root.position = tree_position
+    tree_root.scale = Vector3.ONE * tree_scale
     add_child(tree_root)
 
     var trunk := MeshInstance3D.new()
@@ -401,16 +403,29 @@ func _add_tree(tree_position: Vector3) -> void:
     trunk.material_override = trunk_material
     tree_root.add_child(trunk)
 
-    var leaves := MeshInstance3D.new()
-    var leaves_mesh := SphereMesh.new()
-    leaves_mesh.radius = 1.25
-    leaves_mesh.height = 2.2
-    leaves.mesh = leaves_mesh
-    leaves.position.y = 2.8
-    var leaves_material := StandardMaterial3D.new()
-    leaves_material.albedo_color = Color(0.08, 0.30, 0.12)
-    leaves.material_override = leaves_material
-    tree_root.add_child(leaves)
+    # Three overlapping canopy forms create a fuller, varied low-poly silhouette.
+    var canopy_colors := [
+        Color(0.07, 0.27, 0.11),
+        Color(0.09, 0.32, 0.13),
+        Color(0.12, 0.35, 0.15)
+    ]
+    var canopy_positions := [
+        Vector3(0, 2.8, 0),
+        Vector3(-0.62, 2.55, 0.12),
+        Vector3(0.58, 2.62, -0.10)
+    ]
+    for canopy_index in range(3):
+        var leaves := MeshInstance3D.new()
+        var leaves_mesh := SphereMesh.new()
+        leaves_mesh.radius = 1.0 if canopy_index == 0 else 0.78
+        leaves_mesh.height = 1.8 if canopy_index == 0 else 1.45
+        leaves.mesh = leaves_mesh
+        leaves.position = canopy_positions[canopy_index]
+        var leaves_material := StandardMaterial3D.new()
+        leaves_material.albedo_color = canopy_colors[canopy_index]
+        leaves_material.roughness = 1.0
+        leaves.material_override = leaves_material
+        tree_root.add_child(leaves)
 
 func _make_player() -> void:
     player = CharacterBody3D.new()
