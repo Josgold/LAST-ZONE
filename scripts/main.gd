@@ -34,6 +34,9 @@ var joystick_control: Control
 var joystick_knob: Panel
 var joystick_active := false
 var joystick_touch_index := -1
+var compass_label: Label
+var safe_zone_ring: MeshInstance3D
+const SAFE_ZONE_PREVIEW_RADIUS := 18.0
 
 func _ready() -> void:
     _make_world()
@@ -49,6 +52,8 @@ func _process(delta: float) -> void:
             camera_target,
             1.0 - exp(-9.0 * delta)
         )
+    if compass_label != null and camera_pivot != null:
+        _refresh_compass()
     if player_visual_root != null and player != null:
         var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
         var movement_amount := clampf(horizontal_speed / MOVE_SPEED, 0.0, 1.0)
@@ -215,6 +220,7 @@ func _make_world() -> void:
     _make_military_base()
     _make_landscape_details()
     _make_island_landmarks()
+    _make_safe_zone_preview()
 
 func _make_island_landmarks() -> void:
     _add_landmark("LOOKOUT", Vector3(-17, 0, -8), Color(0.86, 0.78, 0.38))
@@ -236,6 +242,28 @@ func _add_landmark(label_text: String, landmark_position: Vector3, marker_color:
     sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
     sign.modulate = Color(0.96, 0.95, 0.82)
     marker.add_child(sign)
+
+
+func _make_safe_zone_preview() -> void:
+    # A visual-only preview ring; it does not damage or restrict the player yet.
+    safe_zone_ring = MeshInstance3D.new()
+    safe_zone_ring.name = "SafeZonePreview"
+    var ring_mesh := TorusMesh.new()
+    ring_mesh.inner_radius = SAFE_ZONE_PREVIEW_RADIUS - 0.35
+    ring_mesh.outer_radius = SAFE_ZONE_PREVIEW_RADIUS
+    ring_mesh.ring_segments = 48
+    ring_mesh.rings = 12
+    safe_zone_ring.mesh = ring_mesh
+    safe_zone_ring.rotation_degrees.x = 90.0
+    safe_zone_ring.position = Vector3(0, 0.10, 0)
+    var ring_material := StandardMaterial3D.new()
+    ring_material.albedo_color = Color(0.18, 0.82, 0.76, 0.78)
+    ring_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    ring_material.no_depth_test = false
+    safe_zone_ring.material_override = ring_material
+    add_child(safe_zone_ring)
+
 
 func _make_landscape_details() -> void:
     # Small shrubs and grass clumps add texture without expensive high-poly assets.
@@ -738,6 +766,28 @@ func _make_mobile_controls() -> void:
     hint.add_theme_color_override("font_color", Color.WHITE)
     layer.add_child(hint)
 
+    compass_label = Label.new()
+    compass_label.text = "N 000°"
+    compass_label.anchor_left = 0.39
+    compass_label.anchor_top = 0.13
+    compass_label.anchor_right = 0.61
+    compass_label.anchor_bottom = 0.18
+    compass_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    compass_label.add_theme_font_size_override("font_size", 20)
+    compass_label.add_theme_color_override("font_color", Color(0.95, 0.97, 0.88))
+    layer.add_child(compass_label)
+
+    var zone_preview_label := Label.new()
+    zone_preview_label.text = "SAFE AREA PREVIEW  •  18m"
+    zone_preview_label.anchor_left = 0.34
+    zone_preview_label.anchor_top = 0.18
+    zone_preview_label.anchor_right = 0.66
+    zone_preview_label.anchor_bottom = 0.22
+    zone_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    zone_preview_label.add_theme_font_size_override("font_size", 13)
+    zone_preview_label.add_theme_color_override("font_color", Color(0.48, 0.91, 0.82))
+    layer.add_child(zone_preview_label)
+
     graphics_button = Button.new()
     graphics_button.text = "GFX: BALANCED"
     graphics_button.anchor_left = 0.79
@@ -818,6 +868,14 @@ func _update_joystick(pointer_position: Vector2, center: Vector2, radius: float)
         offset = offset.normalized() * radius
     move_direction = Vector2(offset.x / radius, offset.y / radius)
     joystick_knob.position = center + offset - joystick_knob.size * 0.5
+
+
+func _refresh_compass() -> void:
+    var heading := fposmod(rad_to_deg(camera_pivot.global_rotation.y), 360.0)
+    var directions := ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+    var direction_index := int(round(heading / 45.0)) % directions.size()
+    compass_label.text = "%s  %03d°" % [directions[direction_index], int(round(heading)) % 360]
+
 
 func _cycle_graphics_quality() -> void:
     graphics_quality = (graphics_quality + 1) % 3
