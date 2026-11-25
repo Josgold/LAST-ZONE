@@ -459,10 +459,6 @@ func _make_player() -> void:
     player_visual_root.name = "Visuals"
     player.add_child(player_visual_root)
 
-    player_visual_root = Node3D.new()
-    player_visual_root.name = "Visuals"
-    player.add_child(player_visual_root)
-
     var body_mesh := MeshInstance3D.new()
     var capsule_mesh := CapsuleMesh.new()
     capsule_mesh.radius = 0.42
