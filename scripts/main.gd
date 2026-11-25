@@ -30,6 +30,8 @@ var left_arm_pivot: Node3D
 var right_arm_pivot: Node3D
 var left_leg_pivot: Node3D
 var right_leg_pivot: Node3D
+var joystick_knob: Panel
+var joystick_active := false
 
 func _ready() -> void:
     _make_world()
@@ -667,39 +669,47 @@ func _make_mobile_controls() -> void:
     var layer := CanvasLayer.new()
     add_child(layer)
 
-    var panel := HBoxContainer.new()
-    panel.anchor_left = 0.02
-    panel.anchor_top = 0.72
-    panel.anchor_right = 0.70
-    panel.anchor_bottom = 0.96
-    panel.add_theme_constant_override("separation", 6)
-    layer.add_child(panel)
+    # Virtual movement stick: drag inside the base to move in any direction.
+    var joystick := Panel.new()
+    joystick.name = "MovementJoystick"
+    joystick.anchor_left = 0.035
+    joystick.anchor_top = 0.70
+    joystick.anchor_right = 0.035
+    joystick.anchor_bottom = 0.70
+    joystick.offset_right = 154
+    joystick.offset_bottom = 154
+    joystick.mouse_filter = Control.MOUSE_FILTER_STOP
+    var joystick_style := StyleBoxFlat.new()
+    joystick_style.bg_color = Color(0.04, 0.07, 0.07, 0.62)
+    joystick_style.border_color = Color(0.82, 0.88, 0.78, 0.85)
+    joystick_style.set_border_width_all(3)
+    joystick_style.set_corner_radius_all(77)
+    joystick.add_theme_stylebox_override("panel", joystick_style)
+    joystick.gui_input.connect(_on_joystick_gui_input)
+    layer.add_child(joystick)
 
-    _add_hold_button(panel, "LEFT", Vector2(-1, 0))
-    _add_hold_button(panel, "RIGHT", Vector2(1, 0))
-    _add_hold_button(panel, "FORWARD", Vector2(0, -1))
-    _add_hold_button(panel, "BACK", Vector2(0, 1))
+    joystick_knob = Panel.new()
+    joystick_knob.name = "JoystickKnob"
+    joystick_knob.position = Vector2(48, 48)
+    joystick_knob.size = Vector2(58, 58)
+    joystick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var knob_style := StyleBoxFlat.new()
+    knob_style.bg_color = Color(0.68, 0.78, 0.61, 0.92)
+    knob_style.border_color = Color(0.94, 0.96, 0.87, 0.95)
+    knob_style.set_border_width_all(2)
+    knob_style.set_corner_radius_all(29)
+    joystick_knob.add_theme_stylebox_override("panel", knob_style)
+    joystick.add_child(joystick_knob)
 
-    var jump_button := Button.new()
-    jump_button.text = "JUMP"
-    jump_button.custom_minimum_size = Vector2(90, 64)
-    jump_button.anchor_left = 0.82
-    jump_button.anchor_top = 0.78
-    jump_button.anchor_right = 0.98
-    jump_button.anchor_bottom = 0.94
+    var jump_button := _make_action_button(layer, "JUMP", Vector2(0.855, 0.79), Vector2(0.99, 0.96), Color(0.78, 0.67, 0.32))
     jump_button.pressed.connect(func(): jump_requested = true)
-    layer.add_child(jump_button)
 
-    var sprint_button := Button.new()
-    sprint_button.text = "SPRINT"
-    sprint_button.custom_minimum_size = Vector2(100, 54)
-    sprint_button.anchor_left = 0.80
-    sprint_button.anchor_top = 0.48
-    sprint_button.anchor_right = 0.98
-    sprint_button.anchor_bottom = 0.59
+    var sprint_button := _make_action_button(layer, "SPRINT", Vector2(0.72, 0.64), Vector2(0.87, 0.80), Color(0.33, 0.58, 0.43))
     sprint_button.button_down.connect(func(): sprint_requested = true)
     sprint_button.button_up.connect(func(): sprint_requested = false)
-    layer.add_child(sprint_button)
+
+    var interact_button := _make_action_button(layer, "USE", Vector2(0.855, 0.59), Vector2(0.99, 0.75), Color(0.34, 0.52, 0.70))
+    interact_button.pressed.connect(_try_interact)
 
     var title := Label.new()
     title.text = "LAST ZONE  |  ISLAND OUTPOST"
@@ -714,16 +724,6 @@ func _make_mobile_controls() -> void:
     status.add_theme_font_size_override("font_size", 14)
     status.add_theme_color_override("font_color", Color(0.78, 0.84, 0.72))
     layer.add_child(status)
-
-    var interact_button := Button.new()
-    interact_button.text = "INTERACT"
-    interact_button.custom_minimum_size = Vector2(112, 58)
-    interact_button.anchor_left = 0.78
-    interact_button.anchor_top = 0.63
-    interact_button.anchor_right = 0.98
-    interact_button.anchor_bottom = 0.75
-    interact_button.pressed.connect(_try_interact)
-    layer.add_child(interact_button)
 
     var hint := Label.new()
     hint.text = "DRAG RIGHT SIDE TO LOOK AROUND"
@@ -744,6 +744,72 @@ func _make_mobile_controls() -> void:
     graphics_button.pressed.connect(_cycle_graphics_quality)
     layer.add_child(graphics_button)
     _apply_graphics_quality()
+
+func _make_action_button(parent: Control, label_text: String, top_left: Vector2, bottom_right: Vector2, button_color: Color) -> Button:
+    var button := Button.new()
+    button.text = label_text
+    button.anchor_left = top_left.x
+    button.anchor_top = top_left.y
+    button.anchor_right = bottom_right.x
+    button.anchor_bottom = bottom_right.y
+    button.offset_left = 0
+    button.offset_top = 0
+    button.offset_right = 0
+    button.offset_bottom = 0
+    button.add_theme_font_size_override("font_size", 16)
+    button.add_theme_color_override("font_color", Color(0.98, 0.98, 0.91))
+    var normal := StyleBoxFlat.new()
+    normal.bg_color = button_color.darkened(0.28)
+    normal.border_color = button_color.lightened(0.28)
+    normal.set_border_width_all(2)
+    normal.set_corner_radius_all(42)
+    normal.content_margin_left = 8.0
+    normal.content_margin_right = 8.0
+    normal.content_margin_top = 8.0
+    normal.content_margin_bottom = 8.0
+    button.add_theme_stylebox_override("normal", normal)
+    var pressed := normal.duplicate() as StyleBoxFlat
+    pressed.bg_color = button_color.lightened(0.08)
+    button.add_theme_stylebox_override("pressed", pressed)
+    button.add_theme_stylebox_override("hover", normal)
+    parent.add_child(button)
+    return button
+
+func _on_joystick_gui_input(event: InputEvent) -> void:
+    var joystick := get_node_or_null("CanvasLayer/MovementJoystick") as Control
+    if joystick == null or joystick_knob == null:
+        return
+    var center := joystick.size * 0.5
+    var radius := 48.0
+    if event is InputEventScreenTouch:
+        joystick_active = event.pressed
+        if joystick_active:
+            _update_joystick(event.position, center, radius)
+        else:
+            move_direction = Vector2.ZERO
+            joystick_knob.position = center - joystick_knob.size * 0.5
+        joystick.accept_event()
+    elif event is InputEventScreenDrag and joystick_active:
+        _update_joystick(event.position, center, radius)
+        joystick.accept_event()
+    elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+        joystick_active = event.pressed
+        if joystick_active:
+            _update_joystick(event.position, center, radius)
+        else:
+            move_direction = Vector2.ZERO
+            joystick_knob.position = center - joystick_knob.size * 0.5
+        joystick.accept_event()
+    elif event is InputEventMouseMotion and joystick_active:
+        _update_joystick(event.position, center, radius)
+        joystick.accept_event()
+
+func _update_joystick(pointer_position: Vector2, center: Vector2, radius: float) -> void:
+    var offset := pointer_position - center
+    if offset.length() > radius:
+        offset = offset.normalized() * radius
+    move_direction = Vector2(offset.x / radius, offset.y / radius)
+    joystick_knob.position = center + offset - joystick_knob.size * 0.5
 
 func _cycle_graphics_quality() -> void:
     graphics_quality = (graphics_quality + 1) % 3
