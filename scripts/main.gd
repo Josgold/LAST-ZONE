@@ -823,7 +823,7 @@ func _make_mobile_controls() -> void:
 func _make_minimap(parent: Control) -> void:
     var map_panel := Panel.new()
     map_panel.name = "IslandMinimap"
-    map_panel.anchor_left = 0.80
+    map_panel.anchor_left = 0.62
     map_panel.anchor_top = 0.16
     map_panel.anchor_right = 0.98
     map_panel.anchor_bottom = 0.39
