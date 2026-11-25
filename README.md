@@ -8,6 +8,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Improved procedural sky, atmospheric fog, filmic tone mapping, ambient occlusion, and directional shadows
 - More reflective ocean material and a sandy shoreline detail
 - Additional low-poly grass tufts for more varied island ground detail
+- Varied tree sizes and fuller multi-part low-poly canopies
 - Improved colour-coded supply pickup visuals with readable accent bands
 - Dark semi-transparent gameplay HUD panel for clearer information
 - Barracks, hangar, supply house, guard house, and workshop
