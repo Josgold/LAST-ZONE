@@ -10,17 +10,28 @@ var move_direction := Vector2.ZERO
 var jump_requested := false
 var camera_pivot: Node3D
 var mouse_look_active := false
+var player_health := 100
+var player_shield := 0
+var supply_tokens := 0
+var nearby_pickup: Area3D
+var health_label: Label
+var shield_label: Label
+var inventory_label: Label
+var pickup_hint: Label
 
 func _ready() -> void:
     _make_world()
     _make_player()
     _make_mobile_controls()
+    _make_gameplay_systems()
 
 func _process(_delta: float) -> void:
     if camera_pivot != null and player != null:
         camera_pivot.global_position = player.global_position + Vector3(0, 1.3, 0)
 
 func _unhandled_input(event: InputEvent) -> void:
+    if event.is_action_pressed("interact"):
+        _try_interact()
     if event is InputEventScreenDrag:
         var screen_size := get_viewport().get_visible_rect().size
         if event.position.x > screen_size.x * 0.42 and event.position.y < screen_size.y * 0.78:
@@ -354,6 +365,7 @@ func _make_player() -> void:
 
 func _setup_input() -> void:
     var actions := {
+        "interact": KEY_E,
         "move_left": KEY_A,
         "move_right": KEY_D,
         "move_forward": KEY_W,
@@ -408,6 +420,16 @@ func _make_mobile_controls() -> void:
     status.add_theme_color_override("font_color", Color(0.78, 0.84, 0.72))
     layer.add_child(status)
 
+    var interact_button := Button.new()
+    interact_button.text = "INTERACT"
+    interact_button.custom_minimum_size = Vector2(112, 58)
+    interact_button.anchor_left = 0.78
+    interact_button.anchor_top = 0.63
+    interact_button.anchor_right = 0.98
+    interact_button.anchor_bottom = 0.75
+    interact_button.pressed.connect(_try_interact)
+    layer.add_child(interact_button)
+
     var hint := Label.new()
     hint.text = "DRAG RIGHT SIDE TO LOOK AROUND"
     hint.anchor_left = 0.42
@@ -428,3 +450,93 @@ func _add_hold_button(parent: Control, label_text: String, direction: Vector2) -
             move_direction = Vector2.ZERO
     )
     parent.add_child(button)
+
+
+func _make_gameplay_systems() -> void:
+    _create_pickup("MEDKIT", Vector3(-5, 0.8, 3), "Restores 35 health")
+    _create_pickup("SHIELD CELL", Vector3(2, 0.8, 5), "Adds 50 shield")
+    _create_pickup("SUPPLY TOKEN", Vector3(5, 0.8, 3), "Adds 1 supply token")
+
+    var layer := get_node_or_null("GameplayHUD") as CanvasLayer
+    if layer == null:
+        layer = CanvasLayer.new()
+        layer.name = "GameplayHUD"
+        add_child(layer)
+
+    health_label = _make_hud_label(layer, "HEALTH: 100", Vector2(18, 76))
+    shield_label = _make_hud_label(layer, "SHIELD: 0", Vector2(18, 102))
+    inventory_label = _make_hud_label(layer, "SUPPLY TOKENS: 0", Vector2(18, 128))
+    pickup_hint = _make_hud_label(layer, "Find supplies around the outpost", Vector2(18, 158))
+    _refresh_gameplay_hud()
+
+func _make_hud_label(parent: Control, label_text: String, label_position: Vector2) -> Label:
+    var label := Label.new()
+    label.text = label_text
+    label.position = label_position
+    label.add_theme_font_size_override("font_size", 16)
+    label.add_theme_color_override("font_color", Color(0.95, 0.96, 0.88))
+    parent.add_child(label)
+    return label
+
+func _create_pickup(item_type: String, item_position: Vector3, description: String) -> void:
+    var pickup := Area3D.new()
+    pickup.name = item_type.replace(" ", "_")
+    pickup.position = item_position
+    pickup.set_meta("item_type", item_type)
+    pickup.set_meta("description", description)
+    pickup.collision_layer = 0
+    pickup.collision_mask = 1
+    var mesh_node := MeshInstance3D.new()
+    var mesh := BoxMesh.new()
+    mesh.size = Vector3(0.65, 0.65, 0.65)
+    mesh_node.mesh = mesh
+    var material := StandardMaterial3D.new()
+    if item_type == "MEDKIT":
+        material.albedo_color = Color(0.72, 0.22, 0.20)
+    elif item_type == "SHIELD CELL":
+        material.albedo_color = Color(0.18, 0.48, 0.82)
+    else:
+        material.albedo_color = Color(0.82, 0.68, 0.22)
+    mesh_node.material_override = material
+    pickup.add_child(mesh_node)
+    var collision := CollisionShape3D.new()
+    var sphere := SphereShape3D.new()
+    sphere.radius = 1.8
+    collision.shape = sphere
+    pickup.add_child(collision)
+    pickup.body_entered.connect(func(body: Node3D):
+        if body == player:
+            nearby_pickup = pickup
+            _refresh_gameplay_hud()
+    )
+    pickup.body_exited.connect(func(body: Node3D):
+        if body == player and nearby_pickup == pickup:
+            nearby_pickup = null
+            _refresh_gameplay_hud()
+    )
+    add_child(pickup)
+
+func _try_interact() -> void:
+    if nearby_pickup == null or not is_instance_valid(nearby_pickup):
+        return
+    var item_type: String = nearby_pickup.get_meta("item_type", "")
+    if item_type == "MEDKIT":
+        player_health = mini(100, player_health + 35)
+    elif item_type == "SHIELD CELL":
+        player_shield = mini(100, player_shield + 50)
+    elif item_type == "SUPPLY TOKEN":
+        supply_tokens += 1
+    nearby_pickup.queue_free()
+    nearby_pickup = null
+    _refresh_gameplay_hud()
+
+func _refresh_gameplay_hud() -> void:
+    if health_label == null:
+        return
+    health_label.text = "HEALTH: %d" % player_health
+    shield_label.text = "SHIELD: %d" % player_shield
+    inventory_label.text = "SUPPLY TOKENS: %d" % supply_tokens
+    if nearby_pickup != null and is_instance_valid(nearby_pickup):
+        pickup_hint.text = "Nearby: %s  |  Press E or INTERACT" % nearby_pickup.get_meta("item_type", "SUPPLY")
+    else:
+        pickup_hint.text = "Explore the outpost to find supplies"
