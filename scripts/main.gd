@@ -359,10 +359,6 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     building.position = building_position + Vector3(0, building_size.y / 2.0, 0)
     add_child(building)
 
-    player_visual_root = Node3D.new()
-    player_visual_root.name = 'Visuals'
-    player.add_child(player_visual_root)
-
     var body_mesh := MeshInstance3D.new()
     var box_mesh := BoxMesh.new()
     box_mesh.size = building_size
@@ -458,6 +454,10 @@ func _make_player() -> void:
     player = CharacterBody3D.new()
     player.name = "Player"
     player.position = Vector3(0, 1.2, 0)
+
+    player_visual_root = Node3D.new()
+    player_visual_root.name = "Visuals"
+    player.add_child(player_visual_root)
 
     player_visual_root = Node3D.new()
     player_visual_root.name = "Visuals"
