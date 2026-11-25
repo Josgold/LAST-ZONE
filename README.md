@@ -18,6 +18,8 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Simple connecting roads around the outpost
 - Third-person low-poly player model with helmet, vest, shoulder pads, belt, boots, and backpack details
 - Enhanced outpost buildings with layered roof trim, framed windows, corner supports, and entrance steps
+- Smoothed third-person camera follow to reduce abrupt movement
+- Lightweight player idle breathing and movement bob animation, with a subtle movement lean
 - Orbit camera
 - WASD + Space keyboard controls
 - On-screen movement and jump buttons
@@ -35,11 +37,11 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 4. Open the project and press **F6** or **F5** to run.
 
 ## Development status
-This is still an early offline prototype. The latest environment, character-model, building-detail, landscape, pickup, HUD, and graphics-preset additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
+This is still an early offline prototype. The latest environment, character-model, animation, camera, building-detail, landscape, pickup, HUD, and graphics-preset additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
 ## Next milestones
-1. Test and refine the expanded island, movement, camera, and touch controls.
-2. Add interactable pickups and a basic inventory.
+1. Test and refine the expanded island, movement animation, smoothed camera, and touch controls.
+2. Improve the player model and add more environment interactions.
 3. Add match flow, a shrinking safe area, and non-graphic hit/health feedback.
 4. Design secure online rooms and authoritative multiplayer networking.
 5. Optimize and export an Android test build.
