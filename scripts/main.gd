@@ -305,9 +305,31 @@ func _make_player() -> void:
     capsule_mesh.height = 1.8
     body_mesh.mesh = capsule_mesh
     var body_material := StandardMaterial3D.new()
-    body_material.albedo_color = Color(0.12, 0.42, 0.9)
+    body_material.albedo_color = Color(0.20, 0.30, 0.18)
     body_mesh.material_override = body_material
     player.add_child(body_mesh)
+
+    # Simple low-poly field outfit details for the temporary player model.
+    var head := MeshInstance3D.new()
+    var head_mesh := SphereMesh.new()
+    head_mesh.radius = 0.28
+    head_mesh.height = 0.56
+    head.mesh = head_mesh
+    head.position.y = 1.05
+    var head_material := StandardMaterial3D.new()
+    head_material.albedo_color = Color(0.72, 0.57, 0.42)
+    head.material_override = head_material
+    player.add_child(head)
+
+    var backpack := MeshInstance3D.new()
+    var pack_mesh := BoxMesh.new()
+    pack_mesh.size = Vector3(0.58, 0.72, 0.30)
+    backpack.mesh = pack_mesh
+    backpack.position = Vector3(0, 0.12, 0.42)
+    var pack_material := StandardMaterial3D.new()
+    pack_material.albedo_color = Color(0.12, 0.20, 0.12)
+    backpack.material_override = pack_material
+    player.add_child(backpack)
 
     var collision := CollisionShape3D.new()
     var capsule_shape := CapsuleShape3D.new()
@@ -371,6 +393,20 @@ func _make_mobile_controls() -> void:
     jump_button.anchor_bottom = 0.94
     jump_button.pressed.connect(func(): jump_requested = true)
     layer.add_child(jump_button)
+
+    var title := Label.new()
+    title.text = "LAST ZONE  |  ISLAND OUTPOST"
+    title.position = Vector2(18, 14)
+    title.add_theme_font_size_override("font_size", 22)
+    title.add_theme_color_override("font_color", Color(0.92, 0.94, 0.86))
+    layer.add_child(title)
+
+    var status := Label.new()
+    status.text = "FIELD TEST  •  SOLO MODE"
+    status.position = Vector2(18, 44)
+    status.add_theme_font_size_override("font_size", 14)
+    status.add_theme_color_override("font_color", Color(0.78, 0.84, 0.72))
+    layer.add_child(status)
 
     var hint := Label.new()
     hint.text = "DRAG RIGHT SIDE TO LOOK AROUND"
