@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
         var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
         var movement_amount := clampf(horizontal_speed / MOVE_SPEED, 0.0, 1.0)
         var bob_speed := 10.0 if movement_amount > 0.1 else 2.2
-        var bob_amount := 0.055 * movement_amount
+        var bob_amount := 0.012 + (0.055 * movement_amount)
         player_visual_root.position.y = sin(animation_clock * bob_speed) * bob_amount
         player_visual_root.rotation.z = -player.velocity.x * 0.012
 
