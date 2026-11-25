@@ -26,6 +26,10 @@ var graphics_quality := 1
 var graphics_button: Button
 var player_visual_root: Node3D
 var animation_clock := 0.0
+var left_arm_pivot: Node3D
+var right_arm_pivot: Node3D
+var left_leg_pivot: Node3D
+var right_leg_pivot: Node3D
 
 func _ready() -> void:
     _make_world()
@@ -48,6 +52,15 @@ func _process(delta: float) -> void:
         var bob_amount := 0.012 + (0.055 * movement_amount)
         player_visual_root.position.y = sin(animation_clock * bob_speed) * bob_amount
         player_visual_root.rotation.z = -player.velocity.x * 0.012
+        var gait := sin(animation_clock * 10.0) * movement_amount * 0.48
+        if left_arm_pivot != null:
+            left_arm_pivot.rotation.x = -gait
+        if right_arm_pivot != null:
+            right_arm_pivot.rotation.x = gait
+        if left_leg_pivot != null:
+            left_leg_pivot.rotation.x = gait
+        if right_leg_pivot != null:
+            right_leg_pivot.rotation.x = -gait
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("interact"):
@@ -197,6 +210,28 @@ func _make_world() -> void:
 
     _make_military_base()
     _make_landscape_details()
+    _make_island_landmarks()
+
+func _make_island_landmarks() -> void:
+    _add_landmark("LOOKOUT", Vector3(-17, 0, -8), Color(0.86, 0.78, 0.38))
+    _add_landmark("SUPPLY DEPOT", Vector3(10, 0, 8), Color(0.48, 0.78, 0.48))
+    _add_landmark("LANDING PAD", Vector3(0, 0, 16), Color(0.82, 0.82, 0.66))
+
+func _add_landmark(label_text: String, landmark_position: Vector3, marker_color: Color) -> void:
+    var marker := Node3D.new()
+    marker.name = label_text.replace(" ", "_") + "_Marker"
+    marker.position = landmark_position
+    add_child(marker)
+    _add_detail_box(marker, Vector3(0, 1.25, 0), Vector3(0.16, 2.5, 0.16), Color(0.20, 0.23, 0.20))
+    _add_detail_box(marker, Vector3(0, 2.45, 0), Vector3(0.72, 0.28, 0.18), marker_color)
+    var sign := Label3D.new()
+    sign.text = label_text
+    sign.position = Vector3(0, 2.85, 0)
+    sign.font_size = 32
+    sign.pixel_size = 0.012
+    sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    sign.modulate = Color(0.96, 0.95, 0.82)
+    marker.add_child(sign)
 
 func _make_landscape_details() -> void:
     # Small shrubs and grass clumps add texture without expensive high-poly assets.
@@ -540,6 +575,24 @@ func _make_player() -> void:
         boot.material_override = boot_material
         player_visual_root.add_child(boot)
 
+    # Separate low-poly limbs give the avatar a clearer human silhouette.
+    left_arm_pivot = _make_character_limb(
+        Vector3(-0.46, 0.48, 0), Vector3(0.0, -0.34, 0),
+        Vector3(0.30, 0.78, 0.30), Color(0.22, 0.28, 0.18), "LeftArm"
+    )
+    right_arm_pivot = _make_character_limb(
+        Vector3(0.46, 0.48, 0), Vector3(0.0, -0.34, 0),
+        Vector3(0.30, 0.78, 0.30), Color(0.22, 0.28, 0.18), "RightArm"
+    )
+    left_leg_pivot = _make_character_limb(
+        Vector3(-0.21, -0.42, 0), Vector3(0.0, -0.29, 0),
+        Vector3(0.36, 0.76, 0.36), Color(0.18, 0.22, 0.16), "LeftLeg"
+    )
+    right_leg_pivot = _make_character_limb(
+        Vector3(0.21, -0.42, 0), Vector3(0.0, -0.29, 0),
+        Vector3(0.36, 0.76, 0.36), Color(0.18, 0.22, 0.16), "RightLeg"
+    )
+
     var belt := MeshInstance3D.new()
     var belt_mesh := BoxMesh.new()
     belt_mesh.size = Vector3(0.72, 0.12, 0.50)
@@ -573,6 +626,25 @@ func _make_player() -> void:
     camera.current = true
 
     _setup_input()
+
+func _make_character_limb(pivot_position: Vector3, mesh_position: Vector3, mesh_size: Vector3, limb_color: Color, limb_name: String) -> Node3D:
+    var pivot := Node3D.new()
+    pivot.name = limb_name + "Pivot"
+    pivot.position = pivot_position
+    player_visual_root.add_child(pivot)
+
+    var limb := MeshInstance3D.new()
+    var limb_mesh := CapsuleMesh.new()
+    limb_mesh.radius = mesh_size.x * 0.5
+    limb_mesh.height = mesh_size.y
+    limb.mesh = limb_mesh
+    limb.position = mesh_position
+    var limb_material := StandardMaterial3D.new()
+    limb_material.albedo_color = limb_color
+    limb_material.roughness = 0.94
+    limb.material_override = limb_material
+    pivot.add_child(limb)
+    return pivot
 
 func _setup_input() -> void:
     var actions := {
