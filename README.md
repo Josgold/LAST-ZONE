@@ -25,6 +25,8 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Orbit camera
 - WASD + Space keyboard controls, with Shift to sprint
 - On-screen hold-to-sprint button for touch devices
+- Joystick control reference stored directly, avoiding reliance on a fixed scene node path
+- Touch joystick tracks its active finger so a second touch does not accidentally cancel movement
 - Virtual on-screen movement joystick with a draggable thumb for 360-degree movement
 - Large rounded JUMP, SPRINT, and USE action buttons on the right side of the screen
 - Drag the right side of the screen to look around on touch devices, keeping camera-look separate from the left movement joystick
@@ -32,7 +34,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Basic prototype HUD identifying the solo field-test mode
 - Interactable outpost pickups: medkit, shield cell, and supply token
 - Basic health, shield, and supply-token counters
-- Keyboard interaction with E and an on-screen INTERACT button
+- Keyboard interaction with E and an on-screen USE button
 
 ## Open the project
 1. Install Godot 4.x on a Windows, Linux, or macOS computer.
@@ -41,7 +43,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 4. Open the project and press **F6** or **F5** to run.
 
 ## Development status
-This is still an early offline prototype. The latest environment, character-model, animation, camera, building-detail, landscape, pickup, HUD, graphics-preset, and redesigned touch-control additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
+This is still an early offline prototype. The latest environment, character-model, animation, camera, building-detail, landscape, pickup, HUD, graphics-preset, and redesigned touch-control additions, including the latest joystick input fix, have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
 ## Next milestones
 1. Test and refine the expanded island, character limbs and gait, landmark signs, smoothed camera, sprint controls, and touch controls.
