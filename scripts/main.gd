@@ -85,16 +85,34 @@ func _make_world() -> void:
     var environment_node := WorldEnvironment.new()
     var world_environment := Environment.new()
     world_environment.background_mode = Environment.BG_SKY
-    world_environment.sky = Sky.new()
+    var sky := Sky.new()
+    var sky_material := ProceduralSkyMaterial.new()
+    sky_material.sky_top_color = Color(0.08, 0.20, 0.38)
+    sky_material.sky_horizon_color = Color(0.55, 0.70, 0.78)
+    sky_material.ground_bottom_color = Color(0.08, 0.12, 0.12)
+    sky_material.ground_horizon_color = Color(0.30, 0.40, 0.34)
+    sky_material.sun_angle_max = 18.0
+    sky_material.sun_curve = 0.12
+    sky.sky_material = sky_material
+    world_environment.sky = sky
     world_environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-    world_environment.ambient_light_color = Color(0.65, 0.72, 0.82)
-    world_environment.ambient_light_energy = 0.8
+    world_environment.ambient_light_color = Color(0.66, 0.76, 0.88)
+    world_environment.ambient_light_energy = 0.9
+    world_environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+    world_environment.fog_enabled = true
+    world_environment.fog_light_color = Color(0.52, 0.66, 0.72)
+    world_environment.fog_density = 0.0018
+    world_environment.ssao_enabled = true
+    world_environment.ssao_radius = 2.0
+    world_environment.ssao_intensity = 1.2
     environment_node.environment = world_environment
     add_child(environment_node)
 
     var sun := DirectionalLight3D.new()
     sun.rotation_degrees = Vector3(-50, -30, 0)
-    sun.light_energy = 1.2
+    sun.light_energy = 1.35
+    sun.shadow_enabled = true
+    sun.directional_shadow_max_distance = 65.0
     add_child(sun)
 
     var ocean := MeshInstance3D.new()
@@ -104,7 +122,9 @@ func _make_world() -> void:
     ocean.position.y = -1.15
     var ocean_material := StandardMaterial3D.new()
     ocean_material.albedo_color = Color(0.025, 0.20, 0.34)
-    ocean_material.roughness = 0.28
+    ocean_material.roughness = 0.22
+    ocean_material.metallic = 0.12
+    ocean_material.specular = 0.75
     ocean.material_override = ocean_material
     add_child(ocean)
 
@@ -117,7 +137,8 @@ func _make_world() -> void:
     island_shape_mesh.height = 1.0
     island_mesh.mesh = island_shape_mesh
     var island_material := StandardMaterial3D.new()
-    island_material.albedo_color = Color(0.20, 0.42, 0.22)
+    island_material.albedo_color = Color(0.24, 0.48, 0.22)
+    island_material.roughness = 1.0
     island_mesh.material_override = island_material
     island.add_child(island_mesh)
 
@@ -151,6 +172,50 @@ func _make_world() -> void:
         add_child(rock_node)
 
     _make_military_base()
+    _make_landscape_details()
+
+func _make_landscape_details() -> void:
+    # Small shrubs and grass clumps add texture without expensive high-poly assets.
+    var shrub_positions := [
+        Vector3(-25, 0, -5), Vector3(-22, 0, 18), Vector3(-8, 0, 24),
+        Vector3(8, 0, 25), Vector3(25, 0, 16), Vector3(26, 0, -12),
+        Vector3(-25, 0, -17), Vector3(4, 0, -26), Vector3(20, 0, -23),
+        Vector3(-7, 0, 20), Vector3(25, 0, 3), Vector3(-27, 0, 5)
+    ]
+    for shrub_position in shrub_positions:
+        _add_shrub(shrub_position)
+
+    # A sandy shoreline strip makes the island edge easier to read.
+    var shore := MeshInstance3D.new()
+    var shore_mesh := CylinderMesh.new()
+    shore_mesh.top_radius = 33.0
+    shore_mesh.bottom_radius = 34.0
+    shore_mesh.height = 0.22
+    shore.mesh = shore_mesh
+    shore.position.y = -0.88
+    var shore_material := StandardMaterial3D.new()
+    shore_material.albedo_color = Color(0.66, 0.56, 0.36)
+    shore_material.roughness = 1.0
+    shore.material_override = shore_material
+    add_child(shore)
+
+func _add_shrub(shrub_position: Vector3) -> void:
+    var shrub := Node3D.new()
+    shrub.position = shrub_position
+    add_child(shrub)
+    for i in range(3):
+        var leaf := MeshInstance3D.new()
+        var leaf_mesh := SphereMesh.new()
+        leaf_mesh.radius = 0.65
+        leaf_mesh.height = 0.9
+        leaf.mesh = leaf_mesh
+        leaf.position = Vector3(float(i - 1) * 0.42, 0.48, 0.0)
+        leaf.scale = Vector3(1.0, 0.8, 1.0)
+        var leaf_material := StandardMaterial3D.new()
+        leaf_material.albedo_color = Color(0.10 + i * 0.015, 0.28 + i * 0.02, 0.11)
+        leaf_material.roughness = 1.0
+        leaf.material_override = leaf_material
+        shrub.add_child(leaf)
 
 func _make_military_base() -> void:
     # A small, non-combat military outpost that gives the island recognizable landmarks.
@@ -273,7 +338,7 @@ func _add_detail_box(parent: Node3D, local_position: Vector3, box_size: Vector3,
     detail.position = local_position
     var material := StandardMaterial3D.new()
     material.albedo_color = color
-    material.roughness = 0.85
+    material.roughness = 0.78
     detail.material_override = material
     parent.add_child(detail)
 
@@ -316,7 +381,8 @@ func _make_player() -> void:
     capsule_mesh.height = 1.8
     body_mesh.mesh = capsule_mesh
     var body_material := StandardMaterial3D.new()
-    body_material.albedo_color = Color(0.20, 0.30, 0.18)
+    body_material.albedo_color = Color(0.16, 0.25, 0.14)
+    body_material.roughness = 0.92
     body_mesh.material_override = body_material
     player.add_child(body_mesh)
 
@@ -338,7 +404,8 @@ func _make_player() -> void:
     backpack.mesh = pack_mesh
     backpack.position = Vector3(0, 0.12, 0.42)
     var pack_material := StandardMaterial3D.new()
-    pack_material.albedo_color = Color(0.12, 0.20, 0.12)
+    pack_material.albedo_color = Color(0.10, 0.17, 0.11)
+    pack_material.roughness = 0.95
     backpack.material_override = pack_material
     player.add_child(backpack)
 
@@ -357,6 +424,9 @@ func _make_player() -> void:
 
     var camera := Camera3D.new()
     camera.position = Vector3(0, 2.8, 7.5)
+    camera.fov = 76.0
+    camera.near = 0.08
+    camera.far = 180.0
     camera.look_at(Vector3(0, 0.8, 0), Vector3.UP)
     camera_pivot.add_child(camera)
     camera.current = true
