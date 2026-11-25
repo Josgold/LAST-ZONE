@@ -199,6 +199,36 @@ func _make_landscape_details() -> void:
     shore.material_override = shore_material
     add_child(shore)
 
+    # Sparse grass tufts and small stones create ground variation at low cost.
+    var grass_positions := [
+        Vector3(-28, 0, -10), Vector3(-24, 0, 12), Vector3(-16, 0, 23),
+        Vector3(-8, 0, -27), Vector3(2, 0, -28), Vector3(12, 0, -25),
+        Vector3(27, 0, -18), Vector3(28, 0, 8), Vector3(18, 0, 25),
+        Vector3(6, 0, 27), Vector3(-15, 0, -24), Vector3(-27, 0, 2),
+        Vector3(24, 0, 22), Vector3(-2, 0, 24), Vector3(14, 0, -27),
+        Vector3(-29, 0, 17), Vector3(29, 0, -2), Vector3(-19, 0, -18)
+    ]
+    for i in range(grass_positions.size()):
+        _add_grass_clump(grass_positions[i], 0.75 + float(i % 4) * 0.12)
+
+func _add_grass_clump(grass_position: Vector3, tuft_scale: float) -> void:
+    var clump := Node3D.new()
+    clump.position = grass_position
+    add_child(clump)
+    for blade_index in range(3):
+        var blade := MeshInstance3D.new()
+        var blade_mesh := BoxMesh.new()
+        blade_mesh.size = Vector3(0.10, 0.48, 0.07)
+        blade.mesh = blade_mesh
+        blade.position = Vector3(float(blade_index - 1) * 0.13, 0.22, 0.0)
+        blade.rotation.z = deg_to_rad(float(blade_index - 1) * 17.0)
+        blade.scale = Vector3.ONE * tuft_scale
+        var blade_material := StandardMaterial3D.new()
+        blade_material.albedo_color = Color(0.18 + blade_index * 0.025, 0.34 + blade_index * 0.025, 0.12)
+        blade_material.roughness = 1.0
+        blade.material_override = blade_material
+        clump.add_child(blade)
+
 func _add_shrub(shrub_position: Vector3) -> void:
     var shrub := Node3D.new()
     shrub.position = shrub_position
@@ -602,10 +632,23 @@ func _make_gameplay_systems() -> void:
         layer.name = "GameplayHUD"
         add_child(layer)
 
-    health_label = _make_hud_label(layer, "HEALTH: 100", Vector2(18, 76))
-    shield_label = _make_hud_label(layer, "SHIELD: 0", Vector2(18, 102))
-    inventory_label = _make_hud_label(layer, "SUPPLY TOKENS: 0", Vector2(18, 128))
-    pickup_hint = _make_hud_label(layer, "Find supplies around the outpost", Vector2(18, 158))
+    var hud_panel := Panel.new()
+    hud_panel.position = Vector2(10, 68)
+    hud_panel.size = Vector2(286, 126)
+    var hud_style := StyleBoxFlat.new()
+    hud_style.bg_color = Color(0.035, 0.055, 0.055, 0.78)
+    hud_style.border_color = Color(0.48, 0.62, 0.48, 0.85)
+    hud_style.set_border_width_all(1)
+    hud_style.set_corner_radius_all(8)
+    hud_style.content_margin_left = 8.0
+    hud_style.content_margin_top = 6.0
+    hud_panel.add_theme_stylebox_override("panel", hud_style)
+    layer.add_child(hud_panel)
+
+    health_label = _make_hud_label(layer, "HEALTH: 100", Vector2(20, 76))
+    shield_label = _make_hud_label(layer, "SHIELD: 0", Vector2(20, 102))
+    inventory_label = _make_hud_label(layer, "SUPPLY TOKENS: 0", Vector2(20, 128))
+    pickup_hint = _make_hud_label(layer, "Find supplies around the outpost", Vector2(20, 158))
     _refresh_gameplay_hud()
 
 func _make_hud_label(parent: Control, label_text: String, label_position: Vector2) -> Label:
@@ -630,14 +673,22 @@ func _create_pickup(item_type: String, item_position: Vector3, description: Stri
     mesh.size = Vector3(0.65, 0.65, 0.65)
     mesh_node.mesh = mesh
     var material := StandardMaterial3D.new()
+    var accent_color := Color(0.92, 0.88, 0.76)
     if item_type == "MEDKIT":
         material.albedo_color = Color(0.72, 0.22, 0.20)
+        accent_color = Color(0.98, 0.90, 0.82)
     elif item_type == "SHIELD CELL":
         material.albedo_color = Color(0.18, 0.48, 0.82)
+        accent_color = Color(0.70, 0.88, 1.0)
     else:
         material.albedo_color = Color(0.82, 0.68, 0.22)
+        accent_color = Color(1.0, 0.91, 0.55)
+    material.roughness = 0.62
     mesh_node.material_override = material
     pickup.add_child(mesh_node)
+    # Bright top and side bands make each supply type readable from a distance.
+    _add_detail_box(pickup, Vector3(0, 0.34, 0), Vector3(0.68, 0.08, 0.68), accent_color)
+    _add_detail_box(pickup, Vector3(0, 0, 0.34), Vector3(0.12, 0.68, 0.04), accent_color)
     var collision := CollisionShape3D.new()
     var sphere := SphereShape3D.new()
     sphere.radius = 1.8
