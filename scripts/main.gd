@@ -321,7 +321,13 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     collision.shape = box_shape
     building.add_child(collision)
 
+    # Layered roof trim gives each structure a clearer silhouette.
     _add_detail_box(building, Vector3(0, building_size.y / 2.0 + 0.12, 0), Vector3(building_size.x + 0.35, 0.24, building_size.z + 0.35), Color(0.20, 0.23, 0.21))
+    _add_detail_box(building, Vector3(0, building_size.y / 2.0 + 0.28, 0), Vector3(building_size.x + 0.12, 0.10, building_size.z + 0.12), Color(0.29, 0.32, 0.28))
+    # Front fascia, corner supports and a visible entrance step.
+    for side_x in [-1.0, 1.0]:
+        _add_detail_box(building, Vector3(side_x * (building_size.x / 2.0 - 0.16), 0, building_size.z / 2.0 + 0.08), Vector3(0.22, building_size.y, 0.22), Color(0.24, 0.27, 0.23))
+    _add_detail_box(building, Vector3(0, -building_size.y / 2.0 + 0.08, building_size.z / 2.0 + 0.35), Vector3(1.5, 0.16, 0.65), Color(0.30, 0.31, 0.28))
     _add_detail_box(building, Vector3(0, -building_size.y / 2.0 + 0.95, building_size.z / 2.0 + 0.025), Vector3(1.1, 1.9, 0.08), Color(0.12, 0.14, 0.13))
 
     var window_color := Color(0.12, 0.22, 0.25)
@@ -329,6 +335,12 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     var window_y := -building_size.y / 2.0 + 1.9
     _add_detail_box(building, Vector3(-building_size.x * 0.27, window_y, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
     _add_detail_box(building, Vector3(building_size.x * 0.27, window_y, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
+    # Window frames and a subtle horizontal wall stripe.
+    for side_x in [-1.0, 1.0]:
+        var window_x := side_x * building_size.x * 0.27
+        _add_detail_box(building, Vector3(window_x, window_y, building_size.z / 2.0 + 0.09), Vector3(window_width + 0.14, 0.10, 0.06), Color(0.18, 0.20, 0.18))
+        _add_detail_box(building, Vector3(window_x, window_y + 0.38, building_size.z / 2.0 + 0.09), Vector3(0.10, 0.82, 0.06), Color(0.18, 0.20, 0.18))
+    _add_detail_box(building, Vector3(0, -building_size.y / 2.0 + 0.35, -building_size.z / 2.0 - 0.025), Vector3(building_size.x * 0.82, 0.12, 0.06), Color(0.25, 0.29, 0.24))
 
 func _add_detail_box(parent: Node3D, local_position: Vector3, box_size: Vector3, color: Color) -> void:
     var detail := MeshInstance3D.new()
@@ -408,6 +420,63 @@ func _make_player() -> void:
     pack_material.roughness = 0.95
     backpack.material_override = pack_material
     player.add_child(backpack)
+
+    # Additional low-poly character pieces: helmet, chest vest, shoulder pads,
+    # belt and boots. These are visual-only and keep the temporary model lightweight.
+    var helmet := MeshInstance3D.new()
+    var helmet_mesh := SphereMesh.new()
+    helmet_mesh.radius = 0.32
+    helmet_mesh.height = 0.34
+    helmet.mesh = helmet_mesh
+    helmet.position = Vector3(0, 1.32, 0)
+    helmet.scale = Vector3(1.0, 0.72, 1.0)
+    var helmet_material := StandardMaterial3D.new()
+    helmet_material.albedo_color = Color(0.20, 0.27, 0.17)
+    helmet_material.roughness = 0.9
+    helmet.material_override = helmet_material
+    player.add_child(helmet)
+
+    var vest := MeshInstance3D.new()
+    var vest_mesh := BoxMesh.new()
+    vest_mesh.size = Vector3(0.78, 0.78, 0.48)
+    vest.mesh = vest_mesh
+    vest.position = Vector3(0, 0.10, -0.02)
+    var vest_material := StandardMaterial3D.new()
+    vest_material.albedo_color = Color(0.28, 0.31, 0.20)
+    vest_material.roughness = 0.95
+    vest.material_override = vest_material
+    player.add_child(vest)
+
+    for side_x in [-1.0, 1.0]:
+        var shoulder := MeshInstance3D.new()
+        var shoulder_mesh := SphereMesh.new()
+        shoulder_mesh.radius = 0.23
+        shoulder_mesh.height = 0.40
+        shoulder.mesh = shoulder_mesh
+        shoulder.position = Vector3(side_x * 0.43, 0.48, 0)
+        shoulder.scale = Vector3(1.0, 0.85, 1.0)
+        shoulder.material_override = vest_material
+        player.add_child(shoulder)
+
+        var boot := MeshInstance3D.new()
+        var boot_mesh := BoxMesh.new()
+        boot_mesh.size = Vector3(0.34, 0.30, 0.52)
+        boot.mesh = boot_mesh
+        boot.position = Vector3(side_x * 0.22, -0.72, -0.08)
+        var boot_material := StandardMaterial3D.new()
+        boot_material.albedo_color = Color(0.13, 0.14, 0.12)
+        boot.material_override = boot_material
+        player.add_child(boot)
+
+    var belt := MeshInstance3D.new()
+    var belt_mesh := BoxMesh.new()
+    belt_mesh.size = Vector3(0.72, 0.12, 0.50)
+    belt.mesh = belt_mesh
+    belt.position = Vector3(0, -0.20, -0.01)
+    var belt_material := StandardMaterial3D.new()
+    belt_material.albedo_color = Color(0.12, 0.14, 0.11)
+    belt.material_override = belt_material
+    player.add_child(belt)
 
     var collision := CollisionShape3D.new()
     var capsule_shape := CapsuleShape3D.new()
