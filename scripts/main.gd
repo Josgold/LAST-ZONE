@@ -30,8 +30,10 @@ var left_arm_pivot: Node3D
 var right_arm_pivot: Node3D
 var left_leg_pivot: Node3D
 var right_leg_pivot: Node3D
+var joystick_control: Control
 var joystick_knob: Panel
 var joystick_active := false
+var joystick_touch_index := -1
 
 func _ready() -> void:
     _make_world()
@@ -671,6 +673,7 @@ func _make_mobile_controls() -> void:
 
     # Virtual movement stick: drag inside the base to move in any direction.
     var joystick := Panel.new()
+    joystick_control = joystick
     joystick.name = "MovementJoystick"
     joystick.anchor_left = 0.035
     joystick.anchor_top = 0.70
@@ -776,22 +779,27 @@ func _make_action_button(parent: Control, label_text: String, top_left: Vector2,
     return button
 
 func _on_joystick_gui_input(event: InputEvent) -> void:
-    var joystick := get_node_or_null("CanvasLayer/MovementJoystick") as Control
-    if joystick == null or joystick_knob == null:
+    if joystick_control == null or joystick_knob == null:
         return
-    var center := joystick.size * 0.5
+    var center := joystick_control.size * 0.5
     var radius := 48.0
+
     if event is InputEventScreenTouch:
-        joystick_active = event.pressed
-        if joystick_active:
-            _update_joystick(event.position, center, radius)
-        else:
+        if event.pressed:
+            if joystick_touch_index == -1:
+                joystick_touch_index = event.index
+                joystick_active = true
+                _update_joystick(event.position, center, radius)
+        elif event.index == joystick_touch_index:
+            joystick_touch_index = -1
+            joystick_active = false
             move_direction = Vector2.ZERO
             joystick_knob.position = center - joystick_knob.size * 0.5
-        joystick.accept_event()
-    elif event is InputEventScreenDrag and joystick_active:
-        _update_joystick(event.position, center, radius)
-        joystick.accept_event()
+        joystick_control.accept_event()
+    elif event is InputEventScreenDrag:
+        if joystick_active and event.index == joystick_touch_index:
+            _update_joystick(event.position, center, radius)
+            joystick_control.accept_event()
     elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
         joystick_active = event.pressed
         if joystick_active:
@@ -799,10 +807,10 @@ func _on_joystick_gui_input(event: InputEvent) -> void:
         else:
             move_direction = Vector2.ZERO
             joystick_knob.position = center - joystick_knob.size * 0.5
-        joystick.accept_event()
-    elif event is InputEventMouseMotion and joystick_active:
+        joystick_control.accept_event()
+    elif event is InputEventMouseMotion and joystick_active and joystick_touch_index == -1:
         _update_joystick(event.position, center, radius)
-        joystick.accept_event()
+        joystick_control.accept_event()
 
 func _update_joystick(pointer_position: Vector2, center: Vector2, radius: float) -> void:
     var offset := pointer_position - center
