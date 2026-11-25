@@ -167,7 +167,7 @@ func _make_military_base() -> void:
 func _add_building(building_name: String, building_position: Vector3, building_size: Vector3, wall_color: Color) -> void:
     var building := StaticBody3D.new()
     building.name = building_name
-    building.position = building_position
+    building.position = building_position + Vector3(0, building_size.y / 2.0, 0)
     add_child(building)
 
     var body_mesh := MeshInstance3D.new()
@@ -187,12 +187,13 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     building.add_child(collision)
 
     _add_detail_box(building, Vector3(0, building_size.y / 2.0 + 0.12, 0), Vector3(building_size.x + 0.35, 0.24, building_size.z + 0.35), Color(0.20, 0.23, 0.21))
-    _add_detail_box(building, Vector3(0, 0.95, building_size.z / 2.0 + 0.025), Vector3(1.1, 1.9, 0.08), Color(0.12, 0.14, 0.13))
+    _add_detail_box(building, Vector3(0, -building_size.y / 2.0 + 0.95, building_size.z / 2.0 + 0.025), Vector3(1.1, 1.9, 0.08), Color(0.12, 0.14, 0.13))
 
     var window_color := Color(0.12, 0.22, 0.25)
     var window_width := minf(1.1, building_size.x * 0.18)
-    _add_detail_box(building, Vector3(-building_size.x * 0.27, 1.9, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
-    _add_detail_box(building, Vector3(building_size.x * 0.27, 1.9, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
+    var window_y := -building_size.y / 2.0 + 1.9
+    _add_detail_box(building, Vector3(-building_size.x * 0.27, window_y, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
+    _add_detail_box(building, Vector3(building_size.x * 0.27, window_y, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
 
 func _add_detail_box(parent: Node3D, local_position: Vector3, box_size: Vector3, color: Color) -> void:
     var detail := MeshInstance3D.new()
