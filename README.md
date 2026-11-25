@@ -4,12 +4,17 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 
 ## Current prototype
 - Circular island test area surrounded by a simple ocean
-- Low-poly trees and rock scenery
-- Third-person player capsule and orbit camera
+- Low-poly trees, rocks, and a small military outpost
+- Barracks, hangar, supply house, guard house, and workshop
+- Watchtower, landing-pad marking, tents, supply crates, perimeter fencing, and lamps
+- Simple connecting roads around the outpost
+- Third-person temporary player model with field-colour outfit details
+- Orbit camera
 - WASD + Space keyboard controls
 - On-screen movement and jump buttons
 - Drag the right side of the screen to look around on touch devices
 - Hold the right mouse button and move the mouse to look around on desktop
+- Basic prototype HUD identifying the solo field-test mode
 
 ## Open the project
 1. Install Godot 4.x on a Windows, Linux, or macOS computer.
@@ -18,14 +23,14 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 4. Open the project and press **F6** or **F5** to run.
 
 ## Development status
-This is an early offline prototype. It has not yet been tested in the Godot editor. Online multiplayer, matchmaking, player accounts, a full island map, safe-zone logic, and Android export configuration are not implemented yet.
+This is still an early offline prototype. The latest environment additions have not yet been tested in the Godot editor on the target computer. Online multiplayer, matchmaking, player accounts, weapon and item gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
-## Planned milestones
-1. Test and refine movement, camera, and touch controls.
-2. Expand the island with buildings, paths, and points of interest.
-3. Add game-state systems, health, and inventory.
+## Next milestones
+1. Test and refine the expanded island, movement, camera, and touch controls.
+2. Add interactable pickups and a basic inventory.
+3. Add match flow, a shrinking safe area, and non-graphic hit/health feedback.
 4. Design secure online rooms and authoritative multiplayer networking.
-5. Optimize and export an Android build.
+5. Optimize and export an Android test build.
 
 ## Technology
 - Godot 4 / GDScript
