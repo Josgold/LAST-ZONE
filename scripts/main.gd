@@ -18,6 +18,10 @@ var health_label: Label
 var shield_label: Label
 var inventory_label: Label
 var pickup_hint: Label
+var scene_environment: Environment
+var sunlight: DirectionalLight3D
+var graphics_quality := 1
+var graphics_button: Button
 
 func _ready() -> void:
     _make_world()
@@ -83,7 +87,8 @@ func _physics_process(delta: float) -> void:
 
 func _make_world() -> void:
     var environment_node := WorldEnvironment.new()
-    var world_environment := Environment.new()
+    scene_environment = Environment.new()
+    var world_environment := scene_environment
     world_environment.background_mode = Environment.BG_SKY
     var sky := Sky.new()
     var sky_material := ProceduralSkyMaterial.new()
@@ -108,7 +113,8 @@ func _make_world() -> void:
     environment_node.environment = world_environment
     add_child(environment_node)
 
-    var sun := DirectionalLight3D.new()
+    sunlight = DirectionalLight3D.new()
+    var sun := sunlight
     sun.rotation_degrees = Vector3(-50, -30, 0)
     sun.light_energy = 1.35
     sun.shadow_enabled = true
@@ -616,13 +622,49 @@ func _make_mobile_controls() -> void:
 
     var hint := Label.new()
     hint.text = "DRAG RIGHT SIDE TO LOOK AROUND"
-    hint.anchor_left = 0.42
+    hint.anchor_left = 0.30
     hint.anchor_top = 0.04
-    hint.anchor_right = 0.98
+    hint.anchor_right = 0.76
     hint.anchor_bottom = 0.12
     hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     hint.add_theme_color_override("font_color", Color.WHITE)
     layer.add_child(hint)
+
+    graphics_button = Button.new()
+    graphics_button.text = "GFX: BALANCED"
+    graphics_button.anchor_left = 0.79
+    graphics_button.anchor_top = 0.04
+    graphics_button.anchor_right = 0.98
+    graphics_button.anchor_bottom = 0.13
+    graphics_button.pressed.connect(_cycle_graphics_quality)
+    layer.add_child(graphics_button)
+    _apply_graphics_quality()
+
+func _cycle_graphics_quality() -> void:
+    graphics_quality = (graphics_quality + 1) % 3
+    _apply_graphics_quality()
+
+func _apply_graphics_quality() -> void:
+    if scene_environment == null or sunlight == null:
+        return
+    if graphics_quality == 0:
+        scene_environment.ssao_enabled = false
+        scene_environment.fog_enabled = false
+        sunlight.shadow_enabled = false
+        if graphics_button != null:
+            graphics_button.text = "GFX: LOW"
+    elif graphics_quality == 1:
+        scene_environment.ssao_enabled = false
+        scene_environment.fog_enabled = true
+        sunlight.shadow_enabled = true
+        if graphics_button != null:
+            graphics_button.text = "GFX: BALANCED"
+    else:
+        scene_environment.ssao_enabled = true
+        scene_environment.fog_enabled = true
+        sunlight.shadow_enabled = true
+        if graphics_button != null:
+            graphics_button.text = "GFX: HIGH"
 
 func _add_hold_button(parent: Control, label_text: String, direction: Vector2) -> void:
     var button := Button.new()
