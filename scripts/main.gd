@@ -22,6 +22,8 @@ var scene_environment: Environment
 var sunlight: DirectionalLight3D
 var graphics_quality := 1
 var graphics_button: Button
+var player_visual_root: Node3D
+var animation_clock := 0.0
 
 func _ready() -> void:
     _make_world()
@@ -29,9 +31,21 @@ func _ready() -> void:
     _make_mobile_controls()
     _make_gameplay_systems()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+    animation_clock += delta
     if camera_pivot != null and player != null:
-        camera_pivot.global_position = player.global_position + Vector3(0, 1.3, 0)
+        var camera_target := player.global_position + Vector3(0, 1.3, 0)
+        camera_pivot.global_position = camera_pivot.global_position.lerp(
+            camera_target,
+            1.0 - exp(-9.0 * delta)
+        )
+    if player_visual_root != null and player != null:
+        var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
+        var movement_amount := clampf(horizontal_speed / MOVE_SPEED, 0.0, 1.0)
+        var bob_speed := 10.0 if movement_amount > 0.1 else 2.2
+        var bob_amount := 0.055 * movement_amount
+        player_visual_root.position.y = sin(animation_clock * bob_speed) * bob_amount
+        player_visual_root.rotation.z = -player.velocity.x * 0.012
 
 func _unhandled_input(event: InputEvent) -> void:
     if event.is_action_pressed("interact"):
@@ -342,6 +356,10 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     building.position = building_position + Vector3(0, building_size.y / 2.0, 0)
     add_child(building)
 
+    player_visual_root = Node3D.new()
+    player_visual_root.name = 'Visuals'
+    player.add_child(player_visual_root)
+
     var body_mesh := MeshInstance3D.new()
     var box_mesh := BoxMesh.new()
     box_mesh.size = building_size
@@ -447,7 +465,7 @@ func _make_player() -> void:
     body_material.albedo_color = Color(0.16, 0.25, 0.14)
     body_material.roughness = 0.92
     body_mesh.material_override = body_material
-    player.add_child(body_mesh)
+    player_visual_root.add_child(body_mesh)
 
     # Simple low-poly field outfit details for the temporary player model.
     var head := MeshInstance3D.new()
@@ -459,7 +477,7 @@ func _make_player() -> void:
     var head_material := StandardMaterial3D.new()
     head_material.albedo_color = Color(0.72, 0.57, 0.42)
     head.material_override = head_material
-    player.add_child(head)
+    player_visual_root.add_child(head)
 
     var backpack := MeshInstance3D.new()
     var pack_mesh := BoxMesh.new()
@@ -470,7 +488,7 @@ func _make_player() -> void:
     pack_material.albedo_color = Color(0.10, 0.17, 0.11)
     pack_material.roughness = 0.95
     backpack.material_override = pack_material
-    player.add_child(backpack)
+    player_visual_root.add_child(backpack)
 
     # Additional low-poly character pieces: helmet, chest vest, shoulder pads,
     # belt and boots. These are visual-only and keep the temporary model lightweight.
@@ -485,7 +503,7 @@ func _make_player() -> void:
     helmet_material.albedo_color = Color(0.20, 0.27, 0.17)
     helmet_material.roughness = 0.9
     helmet.material_override = helmet_material
-    player.add_child(helmet)
+    player_visual_root.add_child(helmet)
 
     var vest := MeshInstance3D.new()
     var vest_mesh := BoxMesh.new()
@@ -496,7 +514,7 @@ func _make_player() -> void:
     vest_material.albedo_color = Color(0.28, 0.31, 0.20)
     vest_material.roughness = 0.95
     vest.material_override = vest_material
-    player.add_child(vest)
+    player_visual_root.add_child(vest)
 
     for side_x in [-1.0, 1.0]:
         var shoulder := MeshInstance3D.new()
@@ -507,7 +525,7 @@ func _make_player() -> void:
         shoulder.position = Vector3(side_x * 0.43, 0.48, 0)
         shoulder.scale = Vector3(1.0, 0.85, 1.0)
         shoulder.material_override = vest_material
-        player.add_child(shoulder)
+        player_visual_root.add_child(shoulder)
 
         var boot := MeshInstance3D.new()
         var boot_mesh := BoxMesh.new()
@@ -517,7 +535,7 @@ func _make_player() -> void:
         var boot_material := StandardMaterial3D.new()
         boot_material.albedo_color = Color(0.13, 0.14, 0.12)
         boot.material_override = boot_material
-        player.add_child(boot)
+        player_visual_root.add_child(boot)
 
     var belt := MeshInstance3D.new()
     var belt_mesh := BoxMesh.new()
@@ -527,7 +545,7 @@ func _make_player() -> void:
     var belt_material := StandardMaterial3D.new()
     belt_material.albedo_color = Color(0.12, 0.14, 0.11)
     belt.material_override = belt_material
-    player.add_child(belt)
+    player_visual_root.add_child(belt)
 
     var collision := CollisionShape3D.new()
     var capsule_shape := CapsuleShape3D.new()
