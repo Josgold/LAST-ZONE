@@ -36,6 +36,7 @@ var joystick_active := false
 var joystick_touch_index := -1
 var compass_label: Label
 var safe_zone_ring: MeshInstance3D
+var minimap_player_marker: ColorRect
 const SAFE_ZONE_PREVIEW_RADIUS := 18.0
 
 func _ready() -> void:
@@ -54,6 +55,8 @@ func _process(delta: float) -> void:
         )
     if compass_label != null and camera_pivot != null:
         _refresh_compass()
+    if minimap_player_marker != null and player != null:
+        _refresh_minimap_player()
     if player_visual_root != null and player != null:
         var horizontal_speed := Vector2(player.velocity.x, player.velocity.z).length()
         var movement_amount := clampf(horizontal_speed / MOVE_SPEED, 0.0, 1.0)
@@ -226,6 +229,24 @@ func _make_island_landmarks() -> void:
     _add_landmark("LOOKOUT", Vector3(-17, 0, -8), Color(0.86, 0.78, 0.38))
     _add_landmark("SUPPLY DEPOT", Vector3(10, 0, 8), Color(0.48, 0.78, 0.48))
     _add_landmark("LANDING PAD", Vector3(0, 0, 16), Color(0.82, 0.82, 0.66))
+    _add_landmark("RADIO POINT", Vector3(25, 0, -16), Color(0.42, 0.76, 0.88))
+    _add_landmark("COASTAL LOOKOUT", Vector3(-26, 0, 13), Color(0.88, 0.66, 0.38))
+    _make_radio_beacon()
+
+func _make_radio_beacon() -> void:
+    var beacon := Node3D.new()
+    beacon.name = "RadioBeacon"
+    beacon.position = Vector3(25, 0, -16)
+    add_child(beacon)
+    _add_detail_box(beacon, Vector3(0, 3.0, 0), Vector3(0.22, 6.0, 0.22), Color(0.24, 0.29, 0.30))
+    _add_detail_box(beacon, Vector3(0, 5.6, 0), Vector3(2.4, 0.14, 0.14), Color(0.34, 0.42, 0.44))
+    _add_detail_box(beacon, Vector3(0, 4.2, 0), Vector3(1.5, 0.12, 0.12), Color(0.34, 0.42, 0.44))
+    var beacon_light := OmniLight3D.new()
+    beacon_light.position = Vector3(0, 6.1, 0)
+    beacon_light.light_color = Color(0.30, 0.80, 0.92)
+    beacon_light.light_energy = 0.7
+    beacon_light.omni_range = 5.0
+    beacon.add_child(beacon_light)
 
 func _add_landmark(label_text: String, landmark_position: Vector3, marker_color: Color) -> void:
     var marker := Node3D.new()
@@ -796,7 +817,80 @@ func _make_mobile_controls() -> void:
     graphics_button.anchor_bottom = 0.13
     graphics_button.pressed.connect(_cycle_graphics_quality)
     layer.add_child(graphics_button)
+    _make_minimap(layer)
     _apply_graphics_quality()
+
+func _make_minimap(parent: Control) -> void:
+    var map_panel := Panel.new()
+    map_panel.name = "IslandMinimap"
+    map_panel.anchor_left = 0.80
+    map_panel.anchor_top = 0.16
+    map_panel.anchor_right = 0.98
+    map_panel.anchor_bottom = 0.39
+    map_panel.offset_left = 0
+    map_panel.offset_top = 0
+    map_panel.offset_right = 0
+    map_panel.offset_bottom = 0
+    map_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var panel_style := StyleBoxFlat.new()
+    panel_style.bg_color = Color(0.025, 0.075, 0.075, 0.82)
+    panel_style.border_color = Color(0.48, 0.76, 0.67, 0.92)
+    panel_style.set_border_width_all(2)
+    panel_style.set_corner_radius_all(10)
+    map_panel.add_theme_stylebox_override("panel", panel_style)
+    parent.add_child(map_panel)
+
+    var map_title := Label.new()
+    map_title.text = "ISLAND MAP"
+    map_title.position = Vector2(7, 3)
+    map_title.add_theme_font_size_override("font_size", 11)
+    map_title.add_theme_color_override("font_color", Color(0.88, 0.94, 0.84))
+    map_panel.add_child(map_title)
+
+    var map_surface := Panel.new()
+    map_surface.position = Vector2(10, 22)
+    map_surface.size = Vector2(112, 112)
+    map_surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var surface_style := StyleBoxFlat.new()
+    surface_style.bg_color = Color(0.18, 0.30, 0.20, 0.94)
+    surface_style.border_color = Color(0.64, 0.70, 0.55, 0.8)
+    surface_style.set_border_width_all(1)
+    surface_style.set_corner_radius_all(56)
+    map_surface.add_theme_stylebox_override("panel", surface_style)
+    map_panel.add_child(map_surface)
+
+    _add_minimap_dot(map_surface, Vector2(56, 16), Color(0.42, 0.78, 0.86), 7)
+    _add_minimap_dot(map_surface, Vector2(20, 79), Color(0.90, 0.72, 0.40), 7)
+    _add_minimap_dot(map_surface, Vector2(56, 84), Color(0.86, 0.84, 0.65), 7)
+    _add_minimap_dot(map_surface, Vector2(85, 28), Color(0.58, 0.82, 0.58), 7)
+    _add_minimap_dot(map_surface, Vector2(29, 40), Color(0.86, 0.80, 0.45), 7)
+
+    minimap_player_marker = ColorRect.new()
+    minimap_player_marker.name = "PlayerMapMarker"
+    minimap_player_marker.size = Vector2(9, 9)
+    minimap_player_marker.color = Color(1.0, 0.34, 0.24)
+    minimap_player_marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    map_surface.add_child(minimap_player_marker)
+    _refresh_minimap_player()
+
+func _add_minimap_dot(parent: Control, dot_position: Vector2, dot_color: Color, dot_size: float) -> void:
+    var dot := ColorRect.new()
+    dot.position = dot_position
+    dot.size = Vector2.ONE * dot_size
+    dot.color = dot_color
+    dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    parent.add_child(dot)
+
+func _refresh_minimap_player() -> void:
+    if minimap_player_marker == null or player == null:
+        return
+    var map_center := Vector2(51.5, 51.5)
+    var map_offset := Vector2(player.global_position.x, player.global_position.z) * 1.45
+    var marker_position := map_center + map_offset - minimap_player_marker.size * 0.5
+    minimap_player_marker.position = Vector2(
+        clampf(marker_position.x, 2.0, 101.0),
+        clampf(marker_position.y, 2.0, 101.0)
+    )
 
 func _make_action_button(parent: Control, label_text: String, top_left: Vector2, bottom_right: Vector2, button_color: Color) -> Button:
     var button := Button.new()
