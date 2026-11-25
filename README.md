@@ -15,6 +15,9 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Drag the right side of the screen to look around on touch devices
 - Hold the right mouse button and move the mouse to look around on desktop
 - Basic prototype HUD identifying the solo field-test mode
+- Interactable outpost pickups: medkit, shield cell, and supply token
+- Basic health, shield, and supply-token counters
+- Keyboard interaction with E and an on-screen INTERACT button
 
 ## Open the project
 1. Install Godot 4.x on a Windows, Linux, or macOS computer.
@@ -23,7 +26,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 4. Open the project and press **F6** or **F5** to run.
 
 ## Development status
-This is still an early offline prototype. The latest environment additions have not yet been tested in the Godot editor on the target computer. Online multiplayer, matchmaking, player accounts, weapon and item gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
+This is still an early offline prototype. The latest environment and pickup additions have not yet been tested in the Godot editor on the target computer. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
 ## Next milestones
 1. Test and refine the expanded island, movement, camera, and touch controls.
