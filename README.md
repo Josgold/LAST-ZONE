@@ -11,6 +11,8 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Varied tree sizes and fuller multi-part low-poly canopies
 - Improved colour-coded supply pickup visuals with readable accent bands
 - Dark semi-transparent gameplay HUD panel for clearer information
+- On-screen graphics preset switch: Low, Balanced, and High
+- Low preset disables ambient occlusion, fog, and directional shadows to reduce graphics load
 - Barracks, hangar, supply house, guard house, and workshop
 - Watchtower, landing-pad marking, tents, supply crates, perimeter fencing, and lamps
 - Simple connecting roads around the outpost
@@ -33,7 +35,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 4. Open the project and press **F6** or **F5** to run.
 
 ## Development status
-This is still an early offline prototype. The latest environment, character-model, building-detail, landscape, pickup, and HUD additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
+This is still an early offline prototype. The latest environment, character-model, building-detail, landscape, pickup, HUD, and graphics-preset additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
 ## Next milestones
 1. Test and refine the expanded island, movement, camera, and touch controls.
