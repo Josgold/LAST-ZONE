@@ -1,6 +1,7 @@
 extends Node3D
 
 const MOVE_SPEED := 6.0
+const SPRINT_SPEED := 8.5
 const JUMP_SPEED := 5.0
 const GRAVITY := 14.0
 const LOOK_SENSITIVITY := 0.005
@@ -8,6 +9,7 @@ const LOOK_SENSITIVITY := 0.005
 var player: CharacterBody3D
 var move_direction := Vector2.ZERO
 var jump_requested := false
+var sprint_requested := false
 var camera_pivot: Node3D
 var mouse_look_active := false
 var player_health := 100
@@ -85,8 +87,9 @@ func _physics_process(delta: float) -> void:
     right = right.normalized()
     var direction := (right * input_vector.x + forward * -input_vector.y).normalized()
 
-    player.velocity.x = direction.x * MOVE_SPEED
-    player.velocity.z = direction.z * MOVE_SPEED
+    var current_speed := SPRINT_SPEED if sprint_requested or Input.is_action_pressed('sprint') else MOVE_SPEED
+    player.velocity.x = direction.x * current_speed
+    player.velocity.z = direction.z * current_speed
 
     if direction.length() > 0.05:
         player.rotation.y = atan2(-direction.x, -direction.z)
@@ -456,6 +459,10 @@ func _make_player() -> void:
     player.name = "Player"
     player.position = Vector3(0, 1.2, 0)
 
+    player_visual_root = Node3D.new()
+    player_visual_root.name = "Visuals"
+    player.add_child(player_visual_root)
+
     var body_mesh := MeshInstance3D.new()
     var capsule_mesh := CapsuleMesh.new()
     capsule_mesh.radius = 0.42
@@ -578,7 +585,8 @@ func _setup_input() -> void:
         "move_right": KEY_D,
         "move_forward": KEY_W,
         "move_back": KEY_S,
-        "jump": KEY_SPACE
+        "jump": KEY_SPACE,
+        "sprint": KEY_SHIFT
     }
     for action_name in actions:
         if not InputMap.has_action(action_name):
@@ -613,6 +621,17 @@ func _make_mobile_controls() -> void:
     jump_button.anchor_bottom = 0.94
     jump_button.pressed.connect(func(): jump_requested = true)
     layer.add_child(jump_button)
+
+    var sprint_button := Button.new()
+    sprint_button.text = "SPRINT"
+    sprint_button.custom_minimum_size = Vector2(100, 54)
+    sprint_button.anchor_left = 0.80
+    sprint_button.anchor_top = 0.48
+    sprint_button.anchor_right = 0.98
+    sprint_button.anchor_bottom = 0.59
+    sprint_button.button_down.connect(func(): sprint_requested = true)
+    sprint_button.button_up.connect(func(): sprint_requested = false)
+    layer.add_child(sprint_button)
 
     var title := Label.new()
     title.text = "LAST ZONE  |  ISLAND OUTPOST"
