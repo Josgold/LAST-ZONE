@@ -21,7 +21,8 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 - Smoothed third-person camera follow to reduce abrupt movement
 - Lightweight player idle breathing and movement bob animation, with a subtle movement lean
 - Orbit camera
-- WASD + Space keyboard controls
+- WASD + Space keyboard controls, with Shift to sprint
+- On-screen hold-to-sprint button for touch devices
 - On-screen movement and jump buttons
 - Drag the right side of the screen to look around on touch devices
 - Hold the right mouse button and move the mouse to look around on desktop
@@ -40,7 +41,7 @@ A 3D Android battle-royale game prototype built with **Godot 4**.
 This is still an early offline prototype. The latest environment, character-model, animation, camera, building-detail, landscape, pickup, HUD, and graphics-preset additions have not yet been tested in the Godot editor on the target computer. Visual effects may need adjustment for mobile performance. The pickup system is a local prototype only. Online multiplayer, matchmaking, player accounts, combat gameplay, safe-zone logic, full match flow, Android export configuration, and performance testing are not implemented yet.
 
 ## Next milestones
-1. Test and refine the expanded island, movement animation, smoothed camera, and touch controls.
+1. Test and refine the expanded island, movement animation, smoothed camera, sprint controls, and touch controls.
 2. Improve the player model and add more environment interactions.
 3. Add match flow, a shrinking safe area, and non-graphic hit/health feedback.
 4. Design secure online rooms and authoritative multiplayer networking.
