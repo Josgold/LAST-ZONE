@@ -147,6 +147,23 @@ func _make_military_base() -> void:
     _add_building("Hangar", Vector3(9, 0, -12), Vector3(10, 4.4, 8), Color(0.40, 0.43, 0.42))
     _add_building("Supply House", Vector3(10, 0, 8), Vector3(6, 3.0, 5), Color(0.48, 0.40, 0.29))
     _add_building("Guard House", Vector3(-15, 0, 7), Vector3(5, 2.8, 5), Color(0.38, 0.42, 0.34))
+    _add_building("Workshop", Vector3(20, 0, -1), Vector3(5, 3.0, 6), Color(0.36, 0.39, 0.42))
+
+    # A marked landing pad, supply containers, tents, perimeter fence and lamps.
+    _add_detail_box(self, Vector3(0, 0.08, 16), Vector3(13, 0.16, 9), Color(0.25, 0.28, 0.25))
+    _add_detail_box(self, Vector3(0, 0.17, 16), Vector3(11, 0.04, 7), Color(0.48, 0.49, 0.43))
+    _add_detail_box(self, Vector3(0, 0.22, 16), Vector3(0.35, 0.05, 5), Color(0.88, 0.82, 0.28))
+    _add_detail_box(self, Vector3(0, 0.22, 16), Vector3(8, 0.05, 0.35), Color(0.88, 0.82, 0.28))
+    _add_supply_crate(Vector3(-4, 0, 3))
+    _add_supply_crate(Vector3(-2, 0, 4))
+    _add_supply_crate(Vector3(4, 0, 4))
+    _add_tent(Vector3(17, 0, 15))
+    _add_tent(Vector3(-23, 0, 15))
+    _add_fence_line(Vector3(-24, 0, -20), Vector3(24, 0, -20), 12)
+    _add_fence_line(Vector3(-24, 0, 20), Vector3(24, 0, 20), 12)
+    _add_lamp(Vector3(-5, 0, -17))
+    _add_lamp(Vector3(15, 0, -17))
+    _add_lamp(Vector3(18, 0, 5))
 
     # Watchtower: a raised platform supported by four posts.
     var tower := Node3D.new()
@@ -163,6 +180,48 @@ func _make_military_base() -> void:
     # Simple roads connect the outpost buildings.
     _add_detail_box(self, Vector3(0, 0.035, -3), Vector3(3.2, 0.07, 23), Color(0.16, 0.17, 0.16))
     _add_detail_box(self, Vector3(0, 0.04, -12), Vector3(25, 0.08, 3.0), Color(0.16, 0.17, 0.16))
+
+
+func _add_supply_crate(crate_position: Vector3) -> void:
+    var crate := StaticBody3D.new()
+    crate.position = crate_position + Vector3(0, 0.55, 0)
+    add_child(crate)
+    _add_detail_box(crate, Vector3.ZERO, Vector3(1.2, 1.1, 1.2), Color(0.42, 0.29, 0.15))
+    _add_detail_box(crate, Vector3(0, 0, 0.62), Vector3(1.25, 0.12, 0.08), Color(0.68, 0.55, 0.28))
+    var shape := CollisionShape3D.new()
+    var box := BoxShape3D.new()
+    box.size = Vector3(1.2, 1.1, 1.2)
+    shape.shape = box
+    crate.add_child(shape)
+
+func _add_tent(tent_position: Vector3) -> void:
+    var tent := Node3D.new()
+    tent.position = tent_position
+    add_child(tent)
+    _add_detail_box(tent, Vector3(0, 0.8, 0), Vector3(3.2, 1.6, 2.5), Color(0.30, 0.36, 0.27))
+    var roof := MeshInstance3D.new()
+    var roof_mesh := PrismMesh.new()
+    roof_mesh.size = Vector3(3.5, 1.0, 2.8)
+    roof.mesh = roof_mesh
+    roof.position.y = 1.9
+    var roof_material := StandardMaterial3D.new()
+    roof_material.albedo_color = Color(0.22, 0.29, 0.21)
+    roof.material_override = roof_material
+    tent.add_child(roof)
+
+func _add_fence_line(start: Vector3, finish: Vector3, post_count: int) -> void:
+    for i in range(post_count + 1):
+        var t := float(i) / float(post_count)
+        var p := start.lerp(finish, t)
+        _add_detail_box(self, p + Vector3(0, 0.65, 0), Vector3(0.18, 1.3, 0.18), Color(0.24, 0.26, 0.23))
+    _add_detail_box(self, (start + finish) * 0.5 + Vector3(0, 0.9, 0), Vector3(start.distance_to(finish), 0.12, 0.10), Color(0.30, 0.32, 0.29))
+
+func _add_lamp(lamp_position: Vector3) -> void:
+    var lamp := Node3D.new()
+    lamp.position = lamp_position
+    add_child(lamp)
+    _add_detail_box(lamp, Vector3(0, 1.8, 0), Vector3(0.16, 3.6, 0.16), Color(0.18, 0.20, 0.19))
+    _add_detail_box(lamp, Vector3(0, 3.65, 0), Vector3(0.65, 0.16, 0.65), Color(0.85, 0.78, 0.46))
 
 func _add_building(building_name: String, building_position: Vector3, building_size: Vector3, wall_color: Color) -> void:
     var building := StaticBody3D.new()
