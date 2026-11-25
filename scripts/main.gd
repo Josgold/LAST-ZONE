@@ -139,6 +139,73 @@ func _make_world() -> void:
         rock_node.position = Vector3(float((i % 4) * 8 - 12), 0.6, float(int(i / 4) * 10 - 10))
         add_child(rock_node)
 
+    _make_military_base()
+
+func _make_military_base() -> void:
+    # A small, non-combat military outpost that gives the island recognizable landmarks.
+    _add_building("Barracks", Vector3(-10, 0, -9), Vector3(8, 3.4, 6), Color(0.34, 0.39, 0.31))
+    _add_building("Hangar", Vector3(9, 0, -12), Vector3(10, 4.4, 8), Color(0.40, 0.43, 0.42))
+    _add_building("Supply House", Vector3(10, 0, 8), Vector3(6, 3.0, 5), Color(0.48, 0.40, 0.29))
+    _add_building("Guard House", Vector3(-15, 0, 7), Vector3(5, 2.8, 5), Color(0.38, 0.42, 0.34))
+
+    # Watchtower: a raised platform supported by four posts.
+    var tower := Node3D.new()
+    tower.name = "Watchtower"
+    tower.position = Vector3(-17, 0, -8)
+    add_child(tower)
+    _add_detail_box(tower, Vector3(0, 2.5, 0), Vector3(3.2, 0.35, 3.2), Color(0.32, 0.35, 0.30))
+    _add_detail_box(tower, Vector3(-1.25, 1.25, -1.25), Vector3(0.22, 2.5, 0.22), Color(0.25, 0.27, 0.24))
+    _add_detail_box(tower, Vector3(1.25, 1.25, -1.25), Vector3(0.22, 2.5, 0.22), Color(0.25, 0.27, 0.24))
+    _add_detail_box(tower, Vector3(-1.25, 1.25, 1.25), Vector3(0.22, 2.5, 0.22), Color(0.25, 0.27, 0.24))
+    _add_detail_box(tower, Vector3(1.25, 1.25, 1.25), Vector3(0.22, 2.5, 0.22), Color(0.25, 0.27, 0.24))
+    _add_detail_box(tower, Vector3(0, 3.0, 0), Vector3(3.8, 0.25, 3.8), Color(0.22, 0.25, 0.22))
+
+    # Simple roads connect the outpost buildings.
+    _add_detail_box(self, Vector3(0, 0.035, -3), Vector3(3.2, 0.07, 23), Color(0.16, 0.17, 0.16))
+    _add_detail_box(self, Vector3(0, 0.04, -12), Vector3(25, 0.08, 3.0), Color(0.16, 0.17, 0.16))
+
+func _add_building(building_name: String, building_position: Vector3, building_size: Vector3, wall_color: Color) -> void:
+    var building := StaticBody3D.new()
+    building.name = building_name
+    building.position = building_position
+    add_child(building)
+
+    var body_mesh := MeshInstance3D.new()
+    var box_mesh := BoxMesh.new()
+    box_mesh.size = building_size
+    body_mesh.mesh = box_mesh
+    var wall_material := StandardMaterial3D.new()
+    wall_material.albedo_color = wall_color
+    wall_material.roughness = 0.9
+    body_mesh.material_override = wall_material
+    building.add_child(body_mesh)
+
+    var collision := CollisionShape3D.new()
+    var box_shape := BoxShape3D.new()
+    box_shape.size = building_size
+    collision.shape = box_shape
+    building.add_child(collision)
+
+    _add_detail_box(building, Vector3(0, building_size.y / 2.0 + 0.12, 0), Vector3(building_size.x + 0.35, 0.24, building_size.z + 0.35), Color(0.20, 0.23, 0.21))
+    _add_detail_box(building, Vector3(0, 0.95, building_size.z / 2.0 + 0.025), Vector3(1.1, 1.9, 0.08), Color(0.12, 0.14, 0.13))
+
+    var window_color := Color(0.12, 0.22, 0.25)
+    var window_width := minf(1.1, building_size.x * 0.18)
+    _add_detail_box(building, Vector3(-building_size.x * 0.27, 1.9, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
+    _add_detail_box(building, Vector3(building_size.x * 0.27, 1.9, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
+
+func _add_detail_box(parent: Node3D, local_position: Vector3, box_size: Vector3, color: Color) -> void:
+    var detail := MeshInstance3D.new()
+    var mesh := BoxMesh.new()
+    mesh.size = box_size
+    detail.mesh = mesh
+    detail.position = local_position
+    var material := StandardMaterial3D.new()
+    material.albedo_color = color
+    material.roughness = 0.85
+    detail.material_override = material
+    parent.add_child(detail)
+
 func _add_tree(tree_position: Vector3) -> void:
     var tree_root := Node3D.new()
     tree_root.position = tree_position
