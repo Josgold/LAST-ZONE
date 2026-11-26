@@ -479,7 +479,7 @@ func _add_building(building_name: String, building_position: Vector3, building_s
     _add_detail_box(building, Vector3(building_size.x * 0.27, window_y, building_size.z / 2.0 + 0.035), Vector3(window_width, 0.75, 0.08), window_color)
     # Window frames and a subtle horizontal wall stripe.
     for side_x in [-1.0, 1.0]:
-        var window_x := side_x * building_size.x * 0.27
+        var window_x: float = float(side_x) * building_size.x * 0.27
         _add_detail_box(building, Vector3(window_x, window_y, building_size.z / 2.0 + 0.09), Vector3(window_width + 0.14, 0.10, 0.06), Color(0.18, 0.20, 0.18))
         _add_detail_box(building, Vector3(window_x, window_y + 0.38, building_size.z / 2.0 + 0.09), Vector3(0.10, 0.82, 0.06), Color(0.18, 0.20, 0.18))
     _add_detail_box(building, Vector3(0, -building_size.y / 2.0 + 0.35, -building_size.z / 2.0 - 0.025), Vector3(building_size.x * 0.82, 0.12, 0.06), Color(0.25, 0.29, 0.24))
