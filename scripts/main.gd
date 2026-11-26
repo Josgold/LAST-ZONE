@@ -892,7 +892,7 @@ func _refresh_minimap_player() -> void:
         clampf(marker_position.y, 2.0, 101.0)
     )
 
-func _make_action_button(parent: Control, label_text: String, top_left: Vector2, bottom_right: Vector2, button_color: Color) -> Button:
+func _make_action_button(parent: Node, label_text: String, top_left: Vector2, bottom_right: Vector2, button_color: Color) -> Button:
     var button := Button.new()
     button.text = label_text
     button.anchor_left = top_left.x
