@@ -820,7 +820,7 @@ func _make_mobile_controls() -> void:
     _make_minimap(layer)
     _apply_graphics_quality()
 
-func _make_minimap(parent: Control) -> void:
+func _make_minimap(parent: Node) -> void:
     var map_panel := Panel.new()
     map_panel.name = "IslandMinimap"
     map_panel.anchor_left = 0.62
@@ -1039,7 +1039,7 @@ func _make_gameplay_systems() -> void:
     pickup_hint = _make_hud_label(layer, "Find supplies around the outpost", Vector2(20, 158))
     _refresh_gameplay_hud()
 
-func _make_hud_label(parent: Control, label_text: String, label_position: Vector2) -> Label:
+func _make_hud_label(parent: Node, label_text: String, label_position: Vector2) -> Label:
     var label := Label.new()
     label.text = label_text
     label.position = label_position
